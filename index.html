@@ -5,63 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>校园二手书交易平台</title>
     <style>
-        :root { --primary: #007bff; --success: #28a745; --danger: #dc3545; }
-        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; }
+        :root { --main: #007bff; --bg: #f8f9fa; }
+        body { background: var(--bg); font-family: "Microsoft YaHei", sans-serif; margin: 0; padding: 20px; }
         .container { max-width: 1100px; margin: 0 auto; }
         
-        /* 登录框美化 */
-        .auth-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; text-align: center; }
-        .input-group { margin-bottom: 15px; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        /* 登录区域 */
+        .auth-box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; text-align: center; }
+        .input-group { margin: 10px auto; max-width: 350px; text-align: left; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-top: 5px; box-sizing: border-box; }
         
-        /* 按钮 */
+        /* 按钮样式 */
         .btn { cursor: pointer; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; transition: 0.3s; }
-        .btn-login { background: var(--primary); color: white; width: 100%; }
-        .btn-logout { background: var(--danger); color: white; display: none; }
+        .btn-blue { background: var(--main); color: white; width: 100%; }
+        .btn-red { background: #dc3545; color: white; display: none; }
         
-        /* 书籍网格布局 */
-        .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; list-style: none; padding: 0; }
+        /* 书籍卡片网格 */
+        #bookList { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; list-style: none; padding: 0; }
+        .book-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; border: 1px solid #eee; transition: 0.3s; }
+        .book-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         
-        /* 书籍卡片 */
-        .book-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.3s; position: relative; border: 1px solid #eee; }
-        .book-card:hover { transform: translateY(-10px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .book-cover { height: 180px; background: #e9ecef; display: flex; align-items: center; justify-content: center; font-size: 50px; color: #adb5bd; }
+        /* 书籍内容详情 */
+        .book-cover { height: 160px; background: #e9ecef; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #adb5bd; border-bottom: 1px solid #eee; }
         .book-info { padding: 15px; }
-        .book-title { font-size: 18px; margin: 0 0 10px; color: #333; font-weight: bold; }
-        .price-row { margin: 10px 0; }
-        .price-now { color: var(--danger); font-size: 20px; font-weight: bold; }
-        .price-old { text-decoration: line-through; color: #999; font-size: 14px; margin-left: 10px; }
-        .seller-tag { font-size: 12px; color: #666; background: #f8f9fa; padding: 5px; border-radius: 4px; display: inline-block; margin-top: 5px; }
-        .discount-badge { position: absolute; top: 10px; right: 10px; background: #ffc107; color: #000; padding: 3px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+        .book-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 8px; }
+        .price-now { color: #e4393c; font-size: 22px; font-weight: bold; }
+        .price-old { text-decoration: line-through; color: #999; font-size: 14px; margin-left: 8px; }
+        .seller-info { font-size: 12px; color: #666; background: #f1f3f5; padding: 6px; border-radius: 4px; margin-top: 10px; }
+        .discount-tag { position: absolute; top: 10px; right: 10px; background: #ffc107; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
         
-        #loginStatus { margin-top: 15px; font-weight: bold; }
+        #statusMsg { margin: 15px 0; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 style="text-align: center; color: #2c3e50;">📚 校园二手书交易广场</h1>
 
-        <div class="auth-card">
-            <div id="loginFields">
+        <div class="auth-box">
+            <div id="loginSection">
                 <div class="input-group">
                     <label>用户名</label>
-                    <input type="text" id="username" placeholder="stu_zhang3">
+                    <input type="text" id="username" placeholder="测试账号：stu_zhang3">
                 </div>
                 <div class="input-group">
                     <label>密码</label>
-                    <input type="password" id="password" placeholder="123456">
+                    <input type="password" id="password" placeholder="测试密码：123456">
                 </div>
                 <div class="input-group">
-                    <button class="btn btn-login" id="loginBtn">进入平台</button>
+                    <button class="btn btn-blue" id="loginBtn">立即登录</button>
                 </div>
             </div>
-            <button class="btn btn-logout" id="logoutBtn">退出登录</button>
-            <div id="loginStatus">请先登录查看全校在售书籍</div>
+            <button class="btn btn-red" id="logoutBtn">退出系统</button>
+            <div id="statusMsg">请登录后查看实时书籍广场</div>
         </div>
 
-        <ul id="bookList" class="book-grid"></ul>
+        <ul id="bookList"></ul>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
