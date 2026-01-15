@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二手书交易平台</title>
+    <style>
+        body {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+        .login-container {
+            border: 1px solid #e0e0e0;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            width: 100%;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            margin-right: 10px;
+        }
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        #loginBtn, #logoutBtn, #loadBooksBtn {
+            display: none;
+        }
+        #loginStatus {
+            margin: 15px 0;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .normal {
+            color: #333;
+        }
+        #bookList {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        #bookList li {
+            border: 1px solid #eee;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+        }
+        #bookList h4 {
+            margin: 0 0 10px 0;
+            color: #007bff;
+            font-size: 18px;
+        }
+        #bookList p {
+            margin: 5px 0;
+            color: #555;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; color: #333; margin-bottom: 30px;">二手书交易平台</h1>
+
+    <!-- 登录区域 -->
+    <div class="login-container">
+        <div class="form-group">
+            <label for="username">用户名</label>
+            <input type="text" id="username" placeholder="请输入测试账号：stu_zhang3" required>
+        </div>
+        <div class="form-group">
+            <label for="password">密码</label>
+            <input type="password" id="password" placeholder="请输入测试密码：123456" required>
+        </div>
+        <button class="btn btn-primary" id="loginBtn">登录</button>
+        <button class="btn btn-secondary" id="logoutBtn">退出登录</button>
+        <div id="loginStatus" class="normal">请输入账号密码登录</div>
+    </div>
+
+    <!-- 书籍操作区域 -->
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button class="btn btn-primary" id="loadBooksBtn">加载书籍列表</button>
+    </div>
+
+    <!-- 书籍列表展示 -->
+    <div id="bookListContainer">
+        <ul id="bookList"></ul>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
