@@ -1,5 +1,5 @@
 // 后端API基础地址（已替换为你的服务器公网IP）
-const API_BASE_URL = "http://8.222.254.248:5000/api";
+const API_BASE_URL = "https://8.222.254.248:5000/api";
 
 // 页面加载完成后初始化所有功能
 document.addEventListener('DOMContentLoaded', function() {
@@ -142,4 +142,5 @@ document.addEventListener('DOMContentLoaded', function() {
             loginBtn.click();
         }
     });
+
 });
