@@ -1,72 +1,101 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>校园二手书交易平台</title>
-    <style>
-        body { max-width: 1000px; margin: 20px auto; padding: 0 20px; font-family: "Microsoft YaHei", sans-serif; background-color: #f5f7fa; }
-        .login-container { border: none; padding: 25px; border-radius: 12px; background: white; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        .btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; }
-        .btn-primary { background-color: #007bff; color: white; width: 100%; }
-        .btn-primary:hover { background-color: #0056b3; }
-        .btn-secondary { background-color: #6c757d; color: white; display: none; margin: 0 auto; }
-        #loginStatus { margin: 15px 0; font-weight: 600; text-align: center; }
-        .success { color: #28a745; }
-        .error { color: #dc3545; }
-        
-        /* 书籍卡片展示区 */
-        #bookList { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-            gap: 20px; 
-            list-style: none; 
-            padding: 0; 
+const API_BASE_URL = "https://8.222.254.248:5000/api";
+
+document.addEventListener('DOMContentLoaded', function() {
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const loadBooksBtn = document.getElementById('loadBooksBtn');
+    const loginStatus = document.getElementById('loginStatus');
+    const bookList = document.getElementById('bookList');
+    const authFields = document.getElementById('authFields');
+
+    // 1. 登录逻辑
+    loginBtn.addEventListener('click', async () => {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!username || !password) {
+            updateStatus('请输入完整信息', 'error');
+            return;
         }
-        .book-card { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 10px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
-            transition: 0.3s;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await response.json();
+
+            if (data.code === 0) {
+                updateStatus(`登录成功！欢迎 ${data.data.realName}`, 'success');
+                toggleUI(true);
+                fetchBooks(); // 登录后自动加载
+            } else {
+                updateStatus(`失败: ${data.msg}`, 'error');
+            }
+        } catch (error) {
+            updateStatus('无法连接到服务器，请检查公网IP或HTTPS配置', 'error');
         }
-        .book-card:hover { transform: translateY(-5px); }
-        .book-card h4 { margin: 0 0 10px 0; color: #007bff; }
-        .price-row { display: flex; align-items: baseline; gap: 10px; margin: 10px 0; }
-        .sale-price { color: #e4393c; font-size: 22px; font-weight: bold; }
-        .original-price { text-decoration: line-through; color: #999; font-size: 14px; }
-        .badge { background: #e1f5fe; color: #01579b; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
-    </style>
-</head>
-<body>
-    <h1 style="text-align: center; color: #333;">校园二手书交易平台</h1>
+    });
 
-    <div class="login-container">
-        <div id="authFields">
-            <div class="form-group">
-                <label>用户名 / 邮箱</label>
-                <input type="text" id="username" placeholder="请输入账号">
-            </div>
-            <div class="form-group">
-                <label>密码</label>
-                <input type="password" id="password" placeholder="请输入密码">
-            </div>
-            <button class="btn btn-primary" id="loginBtn">登录</button>
-        </div>
-        <button class="btn btn-secondary" id="logoutBtn">退出登录</button>
-        <div id="loginStatus">请登录以查看更多书籍</div>
-    </div>
+    // 2. 加载书籍 (对应 SQL 中的 '学生视图_可购书籍')
+    async function fetchBooks() {
+        bookList.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">正在同步校园数据...</p>';
+        try {
+            const response = await fetch(`${API_BASE_URL}/books`);
+            const result = await response.json();
 
-    <div style="text-align: center; margin-bottom: 20px;">
-        <button class="btn btn-primary" id="loadBooksBtn" style="display:none; width:auto;">刷新书籍广场</button>
-    </div>
+            if (result.code === 0) {
+                bookList.innerHTML = '';
+                if (result.data.length === 0) {
+                    bookList.innerHTML = '<p>当前暂无在售书籍</p>';
+                    return;
+                }
+                
+                result.data.forEach(book => {
+                    const li = document.createElement('li');
+                    li.className = 'book-card';
+                    // 字段名必须匹配 SQL 视图别名: 书名, 作者, 售价, 原价, 折扣率, 卖家学院
+                    li.innerHTML = `
+                        <h4>${book.书名}</h4>
+                        <p><strong>作者:</strong> ${book.作者}</p>
+                        <div class="price-row">
+                            <span class="sale-price">¥${book.售价}</span>
+                            <span class="original-price">¥${book.原价}</span>
+                            <span class="badge">${book.折扣率}% 折</span>
+                        </div>
+                        <p><small>卖家: ${book.卖家用户名} | 学院: ${book.卖家学院}</small></p>
+                        <p><small>信用分: <b style="color:green">${book.卖家信用分}</b></small></p>
+                        <button class="btn btn-primary" style="height:35px; padding:0;">查看详情</button>
+                    `;
+                    bookList.appendChild(li);
+                });
+            }
+        } catch (error) {
+            updateStatus('加载书籍失败', 'error');
+        }
+    }
 
-    <ul id="bookList"></ul>
+    loadBooksBtn.addEventListener('click', fetchBooks);
 
-    <script src="script.js"></script>
-</body>
-</html>
+    // 3. 退出登录
+    logoutBtn.addEventListener('click', () => {
+        toggleUI(false);
+        bookList.innerHTML = '';
+        updateStatus('已退出登录', 'normal');
+    });
+
+    // 辅助函数
+    function updateStatus(msg, type) {
+        loginStatus.textContent = msg;
+        loginStatus.className = type;
+    }
+
+    function toggleUI(loggedIn) {
+        authFields.style.display = loggedIn ? 'none' : 'block';
+        logoutBtn.style.display = loggedIn ? 'block' : 'none';
+        loadBooksBtn.style.display = loggedIn ? 'inline-block' : 'none';
+    }
+});
+
 
