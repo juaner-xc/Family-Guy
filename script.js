@@ -1,146 +1,72 @@
-// 后端API基础地址（已替换为你的服务器公网IP）
-const API_BASE_URL = "https://8.222.254.248:5000/api";
-
-// 页面加载完成后初始化所有功能
-document.addEventListener('DOMContentLoaded', function() {
-    // 获取页面元素
-    const usernameInput = document.getElementById('username');
-    const passwordInput = document.getElementById('password');
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const loadBooksBtn = document.getElementById('loadBooksBtn');
-    const loginStatus = document.getElementById('loginStatus');
-    const bookList = document.getElementById('bookList');
-
-    // 存储当前登录用户ID
-    let currentUserId = null;
-
-    // 显示登录按钮（页面加载后默认显示）
-    loginBtn.style.display = 'block';
-
-    // 1. 登录功能
-    loginBtn.addEventListener('click', function() {
-        const username = usernameInput.value.trim();
-        const password = passwordInput.value.trim();
-
-        // 验证输入
-        if (!username) {
-            showLoginStatus('请输入用户名', 'error');
-            return;
-        }
-        if (!password) {
-            showLoginStatus('请输入密码', 'error');
-            return;
-        }
-
-        // 发送登录请求
-        fetch(`${API_BASE_URL}/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP错误，状态码：${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.code === 0) {
-                // 登录成功
-                currentUserId = data.data.userId;
-                showLoginStatus(`登录成功！欢迎 ${data.data.username}`, 'success');
-                
-                // 切换按钮显示状态
-                loginBtn.style.display = 'none';
-                logoutBtn.style.display = 'inline-block';
-                loadBooksBtn.style.display = 'inline-block';
-                
-                // 清空输入框
-                usernameInput.value = '';
-                passwordInput.value = '';
-            } else {
-                // 登录失败
-                showLoginStatus(`登录失败：${data.msg}`, 'error');
-            }
-        })
-        .catch(error => {
-            showLoginStatus(`登录失败：${error.message}`, 'error');
-            console.error('登录请求异常：', error);
-        });
-    });
-
-    // 2. 退出登录功能
-    logoutBtn.addEventListener('click', function() {
-        currentUserId = null;
-        showLoginStatus('已退出登录，请重新登录', 'normal');
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园二手书交易平台</title>
+    <style>
+        body { max-width: 1000px; margin: 20px auto; padding: 0 20px; font-family: "Microsoft YaHei", sans-serif; background-color: #f5f7fa; }
+        .login-container { border: none; padding: 25px; border-radius: 12px; background: white; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        .btn-primary { background-color: #007bff; color: white; width: 100%; }
+        .btn-primary:hover { background-color: #0056b3; }
+        .btn-secondary { background-color: #6c757d; color: white; display: none; margin: 0 auto; }
+        #loginStatus { margin: 15px 0; font-weight: 600; text-align: center; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
         
-        // 切换按钮显示状态
-        logoutBtn.style.display = 'none';
-        loadBooksBtn.style.display = 'none';
-        loginBtn.style.display = 'block';
-        
-        // 清空书籍列表
-        bookList.innerHTML = '';
-    });
-
-    // 3. 加载书籍列表功能
-    loadBooksBtn.addEventListener('click', function() {
-        // 显示加载提示
-        bookList.innerHTML = '<li style="text-align: center; padding: 20px;">正在加载书籍数据...</li>';
-
-        // 发送获取书籍请求
-        fetch(`${API_BASE_URL}/books`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP错误，状态码：${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.code === 0) {
-                // 渲染书籍列表
-                if (data.data.length === 0) {
-                    bookList.innerHTML = '<li style="text-align: center; padding: 20px; color: #666;">暂无书籍数据</li>';
-                    return;
-                }
-
-                bookList.innerHTML = '';
-                data.data.forEach(book => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `
-                        <h4>${book.BookName || '未知书名'}</h4>
-                        <p><strong>作者：</strong>${book.Author || '未知作者'}</p>
-                        <p><strong>价格：</strong>¥${book.Price || 0.00}</p>
-                        <p><strong>ISBN：</strong>${book.ISBN || '未知ISBN'}</p>
-                        <p><strong>状态：</strong>${book.Status || '未知状态'}</p>
-                        <p><strong>发布时间：</strong>${book.PublishTime || '未知时间'}</p>
-                    `;
-                    bookList.appendChild(li);
-                });
-            } else {
-                bookList.innerHTML = `<li style="text-align: center; padding: 20px; color: #dc3545;">加载失败：${data.msg}</li>`;
-            }
-        })
-        .catch(error => {
-            bookList.innerHTML = `<li style="text-align: center; padding: 20px; color: #dc3545;">加载失败：${error.message}</li>`;
-            console.error('加载书籍异常：', error);
-        });
-    });
-
-    // 辅助函数：更新登录状态提示
-    function showLoginStatus(message, type) {
-        loginStatus.textContent = message;
-        loginStatus.className = type;
-    }
-
-    // 监听回车键登录
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && loginBtn.style.display === 'block') {
-            loginBtn.click();
+        /* 书籍卡片展示区 */
+        #bookList { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 20px; 
+            list-style: none; 
+            padding: 0; 
         }
-    });
+        .book-card { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+            transition: 0.3s;
+        }
+        .book-card:hover { transform: translateY(-5px); }
+        .book-card h4 { margin: 0 0 10px 0; color: #007bff; }
+        .price-row { display: flex; align-items: baseline; gap: 10px; margin: 10px 0; }
+        .sale-price { color: #e4393c; font-size: 22px; font-weight: bold; }
+        .original-price { text-decoration: line-through; color: #999; font-size: 14px; }
+        .badge { background: #e1f5fe; color: #01579b; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; color: #333;">校园二手书交易平台</h1>
 
-});
+    <div class="login-container">
+        <div id="authFields">
+            <div class="form-group">
+                <label>用户名 / 邮箱</label>
+                <input type="text" id="username" placeholder="请输入账号">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="password" placeholder="请输入密码">
+            </div>
+            <button class="btn btn-primary" id="loginBtn">登录</button>
+        </div>
+        <button class="btn btn-secondary" id="logoutBtn">退出登录</button>
+        <div id="loginStatus">请登录以查看更多书籍</div>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button class="btn btn-primary" id="loadBooksBtn" style="display:none; width:auto;">刷新书籍广场</button>
+    </div>
+
+    <ul id="bookList"></ul>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
