@@ -1,90 +1,50 @@
-// ==========================================
-// 1. 配置：这里的 IP 必须是你阿里云的公网 IP
-// ==========================================
-const API_BASE = "http://8.222.254.248:5000/api";
-
-// 获取 DOM 元素
-const loginBtn = document.getElementById('loginBtn');
-const msg = document.getElementById('msg');
-const bookList = document.getElementById('bookList');
-
-/**
- * 登录逻辑
- */
-async function doLogin() {
-    const u = document.getElementById('username').value;
-    const p = document.getElementById('password').value;
-    
-    msg.innerText = "正在验证...";
-    msg.style.color = "#666";
-
-    try {
-        const res = await fetch(`${API_BASE}/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: u, password: p })
-        });
-
-        const result = await res.json();
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园二手书交易平台</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .auth-card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; text-align: center; }
+        .input-group { margin-bottom: 15px; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; transition: background 0.3s; }
+        button:hover { background: #0056b3; }
+        #msg { margin-top: 15px; font-weight: bold; min-height: 20px; }
         
-        if (result.code === 0) {
-            msg.innerText = "登录成功！欢迎 " + (result.data.RealName || "");
-            msg.style.color = "green";
-            // 登录成功后自动加载书籍
-            loadBooks();
-        } else {
-            msg.innerText = "错误：" + result.msg;
-            msg.style.color = "red";
-        }
-    } catch (e) {
-        msg.innerHTML = `<span class="error-text">连接失败！</span><br>
-                         <small>请确保后端 python app.py 已启动<br>
-                         且阿里云防火墙已开放 5000 端口</small>`;
-        console.error("Fetch Error:", e);
-    }
-}
+        #bookList { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; list-style: none; padding: 0; }
+        .book-item { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .book-item:hover { transform: translateY(-5px); }
+        .book-item h3 { margin: 0 0 10px 0; color: #007bff; }
+        .price { color: #e4393c; font-size: 22px; font-weight: bold; margin: 10px 0; }
+        .seller-info { font-size: 13px; color: #777; border-top: 1px solid #eee; pt: 10px; margin-top: 10px; }
+        .buy-btn { background: #28a745; margin-top: 10px; }
+        .buy-btn:hover { background: #218838; }
+        
+        .ssl-warning { background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 14px; margin-top: 10px; border: 1px solid #ffeeba; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align:center">📚 校园二手书交易平台</h1>
+        
+        <div class="auth-card">
+            <h2>用户登录</h2>
+            <div class="input-group">
+                <input type="text" id="username" placeholder="用户名/邮箱" value="stu_zhang3">
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="密码" value="123456">
+            </div>
+            <button onclick="doLogin()">进入平台</button>
+            <div id="msg"></div>
+        </div>
 
-/**
- * 加载书籍列表
- */
-async function loadBooks() {
-    try {
-        const res = await fetch(`${API_BASE}/books`);
-        const result = await res.json();
+        <ul id="bookList"></ul>
+    </div>
 
-        if (result.code === 0) {
-            bookList.innerHTML = ''; // 清空列表
-            
-            if (result.data.length === 0) {
-                bookList.innerHTML = '<p style="text-align:center; width:100%">暂无可购书籍</p>';
-                return;
-            }
-
-            result.data.forEach(item => {
-                const li = document.createElement('li');
-                li.className = 'book-item';
-                // 这里的字段名必须与 SQL 视图 [学生视图_可购书籍] 中的字段一致
-                li.innerHTML = `
-                    <h3 style="margin-top:0">${item.书名}</h3>
-                    <p>作者：${item.作者}</p>
-                    <p class="price">¥${item.售价}</p>
-                    <div style="font-size:12px; color:#888;">
-                        <p>卖家：${item.卖家}</p>
-                        <p>学院：${item.卖家学院}</p>
-                    </div>
-                    <button style="margin-top:10px; background:#28a745">立即购买</button>
-                `;
-                bookList.appendChild(li);
-            });
-        }
-    } catch (e) {
-        console.error("加载书籍失败:", e);
-    }
-}
-
-// 绑定登录按钮点击事件
-loginBtn.addEventListener('click', doLogin);
-
-// 页面加载时也可以先尝试加载一下（可选）
-// window.onload = loadBooks;
-
+    <script src="script.js"></script>
+</body>
+</html>
