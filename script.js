@@ -1,10 +1,23 @@
-const API_BASE = "https://8.222.254.248:5000/api"; // 必须带 s
+const API_BASE = "https://8.222.254.248:5000/api"; 
+
+// 1. 核心修复：手动绑定点击事件
+document.addEventListener('DOMContentLoaded', () => {
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', doLogin);
+    }
+});
 
 async function doLogin() {
     const u = document.getElementById('username').value;
     const p = document.getElementById('password').value;
-    const msg = document.getElementById('msg');
+    const msg = document.getElementById('statusMsg'); // 对应 HTML 中的 ID
     
+    if (!u || !p) {
+        msg.innerText = "请输入账号和密码";
+        return;
+    }
+
     try {
         const res = await fetch(`${API_BASE}/login`, {
             method: 'POST',
@@ -12,9 +25,12 @@ async function doLogin() {
             body: JSON.stringify({ username: u, password: p })
         });
         const result = await res.json();
+        
         if (result.code === 0) {
-            msg.innerText = "登录成功！";
-            loadBooks();
+            msg.innerText = "登录成功！欢迎 " + result.data.realName;
+            document.getElementById('loginForm').style.display = 'none'; // 隐藏登录框
+            document.getElementById('logoutBtn').style.display = 'block'; // 显示退出按钮
+            loadBooks(); // 加载书籍列表
         } else {
             msg.innerText = result.msg;
         }
@@ -33,13 +49,19 @@ async function loadBooks() {
         if (result.code === 0) {
             result.data.forEach(item => {
                 const li = document.createElement('li');
-                li.className = 'book-card';
-                // 【核心】这里全部换成中文键名，适配你的 SQL 视图
+                li.className = 'book-item'; // 使用 HTML 中的样式类名
+                // 适配 SQL 视图返回的中文键名
                 li.innerHTML = `
-                    <h3>${item.书名 || '未知'}</h3>
-                    <p>作者：${item.作者 || '匿名'}</p>
-                    <p style="color:red">¥${item.售价 || '0.00'}</p>
-                    <p style="font-size:12px">来自：${item.卖家学院 || '本校'}</p>
+                    <div class="book-cover">📖</div>
+                    <div class="book-info">
+                        <div class="book-title">${item.书名 || '未知书名'}</div>
+                        <div class="price-now">¥${item.售价 || '0.00'}</div>
+                        <div class="price-old">原价: ¥${item.原价 || '0.00'}</div>
+                        <div class="seller-info">
+                            卖家学院：${item.卖家学院 || '未知'}<br>
+                            信用分：${item.卖家信用分 || '100'}
+                        </div>
+                    </div>
                 `;
                 list.appendChild(li);
             });
